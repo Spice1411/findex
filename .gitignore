@@ -1,0 +1,28 @@
+# Corpus data and generated local index artifacts (never commit)
+data/
+*.bin
+*.pkl
+*.json.idx
+bench_results.json
+bench_313t.json
+
+# Python / uv / tooling
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.json
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
