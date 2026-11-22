@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — findex{% endblock %}
+
+{% block content %}
+  <div class="doc-nav">
+    {% if back_query %}
+      <a class="btn-secondary" href="/?q={{ back_query|urlencode }}">&larr; Back to results</a>
+    {% else %}
+      <a class="btn-secondary" href="/">&larr; Back to search</a>
+    {% endif %}
+    <a class="btn-secondary" href="/docs/{{ doc_id }}" target="_blank" rel="noopener">View JSON</a>
+  </div>
+
+  <article class="doc-card">
+    <h1 class="doc-title">{{ title }}</h1>
+    <div class="doc-meta">
+      <span>Doc ID: <strong>{{ doc_id }}</strong></span>
+      <span>Source: <code>{{ source_id }}</code></span>
+      <span>Length: <strong>{{ token_count }}</strong> tokens</span>
+    </div>
+    <pre class="doc-body">{{ text }}</pre>
+  </article>
+{% endblock %}
