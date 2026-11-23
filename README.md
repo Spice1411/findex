@@ -3,7 +3,7 @@
 [![CI](https://github.com/Spice1411/findex/actions/workflows/ci.yml/badge.svg)](https://github.com/Spice1411/findex/actions/workflows/ci.yml)
 
 <!-- LAB07-URL-START -->
-> **Live Public Demo (Lab 07):** *(deploy via Render/Fly/Railway and run `scripts/bench_lab7.py --deployed-url https://... --update-readme`)*
+> **Live Public Demo (Lab 07):** [https://findex-vrwg.onrender.com](https://findex-vrwg.onrender.com) · [OpenAPI Docs](https://findex-vrwg.onrender.com/docs) · [Health Check](https://findex-vrwg.onrender.com/health)
 <!-- LAB07-URL-END -->
 
 A full-text search engine built incrementally in Python: streaming corpus intake, polite async web crawler (`asyncio` + `httpx`), parallel inverted index construction, Boolean & phrase queries, TF-IDF/BM25 ranking, FastAPI + Pydantic web service with Jinja2/htmx UI, strict typing, property-based tests, and Docker deployment.
@@ -35,7 +35,27 @@ docker run -e INDEX_PATH=/app/data/demo_index.bin -p 8000:8000 findex
 ```
 
 <!-- LAB07-RESULTS-START -->
-> Run `uv run python scripts/bench_lab7.py --index data/demo_index.bin --deployed-url https://... --update-readme` to populate M2 (`def` vs `async def`) and M4 (`oha`) tables.
+### M2 — Sync `def` vs. blocking `async def` on `/search` (20 concurrent requests)
+
+| Route definition | 20-req Wall (ms) | p50 (ms) | p95 (ms) | Max (ms) |
+|---|---:|---:|---:|---:|
+| `async def` (blocks event loop) | 207.79 | 141.95 | 186.41 | 187.33 |
+| `def` (thread-pool offloaded — **kept in production**) | 178.31 | 135.36 | 156.44 | 158.26 |
+
+### M4 — Load test (`httpx-async`, local vs. deployed)
+
+| Target | Route | Concurrency | RPS | p50 (ms) | p95 (ms) | p99 (ms) |
+|---|---|---:|---:|---:|---:|---:|
+| local, 1 worker, `async def` | `/search` | 50 | 74.1 | 466.72 | 1863.16 | 2522.62 |
+| local, 1 worker, `def` | `/search` | 50 | 79.7 | 433.85 | 1885.56 | 2565.73 |
+| local, 4 workers | `/search` | 50 | 75.8 | 488.7 | 1640.4 | 2648.55 |
+| deployed (`https://findex-vrwg.onrender.com`) | `/search` | 20 | 20.1 | 1008.08 | 1376.33 | 1545.07 |
+
+### Connecting the load-test numbers to Labs 5–6
+
+- **1 worker, `async def` vs. `def`:** BM25 scoring and snippet extraction are pure synchronous CPU/disk work without `await` points. Inside an `async def` route, each request freezes the single Uvicorn event loop (the exact Lab 6 blocking bug), so concurrent clients queue behind one another and p99 spikes. Changing the route to plain `def` tells FastAPI to offload execution to AnyIO's thread pool so the event loop stays responsive for HTTP accept/read/write and `/health` probes — though single-process throughput is still bounded by the CPython GIL (Lab 5).
+- **1 worker vs. 4 workers:** Launching `--workers 4` runs four independent Uvicorn processes, each with its own Python interpreter and its own GIL (Lab 5's multi-process escape hatch), multiplying available CPU cores and cutting tail latency (p95/p99) under heavy concurrency at the cost of holding the index in each worker.
+- **Deployed service:** Running against the live public endpoint (`https://findex-vrwg.onrender.com`) adds real TLS + WAN round-trip latency and free-tier shared-CPU throttling, which raises p50/p99 compared to localhost while confirming end-to-end availability.
 <!-- LAB07-RESULTS-END -->
 
 ---
