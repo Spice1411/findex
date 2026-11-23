@@ -1,0 +1,70 @@
+{% if error %}
+  <div class="alert alert-error">
+    <strong>Query error:</strong> {{ error }}
+  </div>
+{% elif query %}
+  <div class="meta-bar">
+    <span>
+      <strong>{{ total }}</strong> result{{ '' if total == 1 else 's' }} for
+      <code>{{ query }}</code>
+    </span>
+    <span>{{ scorer|upper }} &middot; {{ "%.2f"|format(took_ms) }} ms</span>
+  </div>
+
+  {% if results %}
+    <ol class="results-list" start="{{ (page - 1) * k + 1 }}">
+      {% for hit in results %}
+        <li class="result-card">
+          <div class="result-header">
+            <a class="result-title" href="/doc/{{ hit.doc_id }}?q={{ query|urlencode }}">
+              {{ hit.title }}
+            </a>
+            <span class="score-pill">score {{ "%.4f"|format(hit.score) }}</span>
+          </div>
+          <div class="result-meta">Document #{{ hit.doc_id }}</div>
+          {% if hit.snippet %}
+            <p class="result-snippet">{{ hit.snippet|safe }}</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+
+    {% if total_pages > 1 %}
+      <nav class="pagination" aria-label="Search results pages">
+        {% if page > 1 %}
+          <a
+            class="btn-secondary"
+            href="/?q={{ query|urlencode }}&amp;scorer={{ scorer }}&amp;k={{ k }}&amp;page={{ page - 1 }}"
+          >&larr; Previous</a>
+        {% else %}
+          <span class="btn-disabled">&larr; Previous</span>
+        {% endif %}
+
+        <span class="page-indicator">Page {{ page }} of {{ total_pages }}</span>
+
+        {% if page < total_pages %}
+          <a
+            class="btn-secondary"
+            href="/?q={{ query|urlencode }}&amp;scorer={{ scorer }}&amp;k={{ k }}&amp;page={{ page + 1 }}"
+          >Next &rarr;</a>
+        {% else %}
+          <span class="btn-disabled">Next &rarr;</span>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      No documents matched <code>{{ query }}</code>. Try another term, <code>OR</code>, or fewer filters.
+    </div>
+  {% endif %}
+{% else %}
+  <div class="examples">
+    <p>Try a Boolean or phrase query:</p>
+    <div class="chip-row">
+      <a class="chip" href="/?q=python+AND+bm25&amp;scorer={{ scorer }}">python AND bm25</a>
+      <a class="chip" href="/?q=nasa+OR+shuttle&amp;scorer={{ scorer }}">nasa OR shuttle</a>
+      <a class="chip" href="/?q=%22event+loop%22&amp;scorer={{ scorer }}">&quot;event loop&quot;</a>
+      <a class="chip" href="/?q=fastapi+AND+(pydantic+OR+uvicorn)&amp;scorer={{ scorer }}">fastapi AND (pydantic OR uvicorn)</a>
+    </div>
+  </div>
+{% endif %}

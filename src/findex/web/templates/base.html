@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}findex — Full-Text Search{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="/">
+        <span class="brand-dot"></span>
+        findex
+      </a>
+      <nav class="nav-links">
+        <a href="/">Search</a>
+        <a href="/docs" target="_blank" rel="noopener">OpenAPI Docs</a>
+        <a href="/stats" target="_blank" rel="noopener">Stats JSON</a>
+        <a href="/health" target="_blank" rel="noopener">Health</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      findex v1.0.0 &middot; Built with Python, FastAPI, Pydantic &amp; Okapi BM25
+    </div>
+  </footer>
+</body>
+</html>

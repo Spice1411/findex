@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{% if query %}{{ query }} — {% endif %}findex Search{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <h1>Search the index</h1>
+    <p class="subtitle">
+      {% if index_ready %}
+        Searching <strong>{{ "{:,}".format(num_docs) }}</strong> indexed documents
+        ({{ "{:,}".format(num_terms) }} unique terms) with Boolean &amp; phrase queries.
+      {% else %}
+        Index is currently unavailable.
+      {% endif %}
+    </p>
+
+    <form
+      class="search-form"
+      method="get"
+      action="/"
+      hx-get="/partials/results"
+      hx-target="#results-container"
+      hx-trigger="keyup changed delay:300ms from:#q-input, change from:#scorer-select"
+      hx-push-url="false"
+    >
+      <input
+        id="q-input"
+        type="search"
+        name="q"
+        value="{{ query }}"
+        placeholder='Try: python AND (bm25 OR asyncio) "event loop"'
+        autocomplete="off"
+        autofocus
+      />
+      <select id="scorer-select" name="scorer" aria-label="Ranking scorer">
+        <option value="bm25" {% if scorer == "bm25" %}selected{% endif %}>BM25</option>
+        <option value="tfidf" {% if scorer == "tfidf" %}selected{% endif %}>TF-IDF</option>
+      </select>
+      <input type="hidden" name="k" value="{{ k }}" />
+      <button type="submit" class="btn-primary">Search</button>
+    </form>
+  </section>
+
+  <section id="results-container">
+    {% include "_results.html" %}
+  </section>
+{% endblock %}
