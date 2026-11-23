@@ -15,7 +15,7 @@ COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY scripts/build_demo_index.py ./scripts/build_demo_index.py
 
-RUN --mount=type=cache,target=/root/.cache/uv     uv sync --locked --no-dev &&     /app/.venv/bin/python scripts/build_demo_index.py       --corpus /app/data/demo_corpus.jsonl       --out /app/data/demo_index.bin
+RUN --mount=type=cache,target=/root/.cache/uv     uv sync --locked --no-dev --no-editable &&     /app/.venv/bin/python scripts/build_demo_index.py       --corpus /app/data/demo_corpus.jsonl       --out /app/data/demo_index.bin
 
 # --- Stage 2: Minimal non-root runtime image ---
 FROM python:3.12-slim-bookworm AS runtime
